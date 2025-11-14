@@ -7,10 +7,11 @@ from loguru import logger
 from datetime import datetime
 
 from src.config import settings
-from src.firebase_manager import FirebaseManager
-from src.whatsapp_sender import WhatsAppSender
-from src.insight_generator import InsightGenerator
-from src.utils import format_insight_message, setup_logging
+from src.services.user_service import UserService
+from src.services.insights_service import InsightsService
+from src.integrations.whatsapp_client import WhatsAppClient
+from src.templates.insights_template import format_insight_message
+from src.utils.helpers import setup_logging
 
 
 class InsightsScheduler:
@@ -26,9 +27,9 @@ class InsightsScheduler:
         setup_logging(settings.log_level)
         
         self.use_mock_data = use_mock_data
-        self.firebase = FirebaseManager()
-        self.whatsapp = WhatsAppSender()
-        self.insights_gen = InsightGenerator()
+        self.user_service = UserService()
+        self.insights_service = InsightsService()
+        self.whatsapp = WhatsAppClient()
         
         logger.info("Insights Scheduler initialized")
     
@@ -42,7 +43,7 @@ class InsightsScheduler:
         
         try:
             # Get all active users
-            users = self.firebase.get_all_active_users()
+            users = self.user_service.get_all_active_users()
             logger.info(f"Found {len(users)} active users")
             
             success_count = 0
@@ -52,12 +53,14 @@ class InsightsScheduler:
                 try:
                     # Generate insights
                     if self.use_mock_data:
-                        insights = self.insights_gen.generate_mock_insights()
+                        insights = self.insights_service.generate_mock_insights()
                     else:
-                        insights = self.insights_gen.generate_insights_for_user(user.get('user_id', 'default'))
+                        insights = self.insights_service.generate_insights_for_user(
+                            user.get('user_id', 'default')
+                        )
                     
-                    # Save insights to Firebase
-                    self.firebase.save_insights(user['id'], insights)
+                    # Save insights
+                    self.insights_service.save_user_insights(user['id'], insights)
                     
                     # Format message
                     message = format_insight_message(insights, user['name'])
@@ -66,7 +69,7 @@ class InsightsScheduler:
                     self.whatsapp.send_text_message(user['phone'], message)
                     
                     # Update last_sent timestamp
-                    self.firebase.update_user_last_sent(user['id'])
+                    self.user_service.update_user_last_sent(user['id'])
                     
                     success_count += 1
                     logger.success(f"✅ Sent insights to {user['name']} ({user['phone']})")
@@ -109,7 +112,7 @@ class InsightsScheduler:
                 time.sleep(60)  # Check every minute
         except KeyboardInterrupt:
             logger.info("Scheduler stopped by user")
-            self.insights_gen.close()
+            self.insights_service.close()
 
 
 def main():

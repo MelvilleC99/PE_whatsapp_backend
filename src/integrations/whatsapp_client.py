@@ -1,19 +1,19 @@
 """
-WhatsApp sender using Meta's WhatsApp Business API
+WhatsApp client for Meta's WhatsApp Business API
 """
 import requests
 from typing import Optional, Dict, List
 from loguru import logger
 
 from src.config import settings
-from src.utils import format_phone_number
+from src.utils.formatters import format_phone_number
 
 
-class WhatsAppSender:
-    """Send WhatsApp messages via Meta's Business API"""
+class WhatsAppClient:
+    """Client for sending WhatsApp messages via Meta's Business API"""
     
     def __init__(self):
-        """Initialize WhatsApp sender with Meta credentials"""
+        """Initialize WhatsApp client with Meta credentials"""
         self.access_token = settings.whatsapp_access_token
         self.phone_number_id = settings.whatsapp_phone_number_id
         self.base_url = f"{settings.meta_graph_api_url}/{self.phone_number_id}/messages"
@@ -23,7 +23,7 @@ class WhatsAppSender:
             "Content-Type": "application/json"
         }
         
-        logger.info(f"WhatsApp sender initialized with phone ID: {self.phone_number_id}")
+        logger.info(f"WhatsApp client initialized with phone ID: {self.phone_number_id}")
     
     def send_text_message(self, to: str, message: str) -> Dict:
         """
@@ -184,17 +184,3 @@ class WhatsAppSender:
         except Exception as e:
             logger.error(f"❌ Connection failed: {e}")
             return False
-
-
-if __name__ == "__main__":
-    # Test WhatsApp sender
-    sender = WhatsAppSender()
-    
-    if sender.test_connection():
-        print("\n✅ WhatsApp API configured correctly!")
-        print("\nTo send a test message, uncomment below and add a phone number:")
-        print("# sender.send_text_message('27821234567', 'Test message from Python!')")
-    else:
-        print("\n❌ Configuration issue. Check your .env file:")
-        print("  - WHATSAPP_ACCESS_TOKEN")
-        print("  - WHATSAPP_PHONE_NUMBER_ID")

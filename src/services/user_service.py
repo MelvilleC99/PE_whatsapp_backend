@@ -1,36 +1,23 @@
 """
-Firebase Manager for user and insights data
+User service for managing WhatsApp users
 """
-import firebase_admin
-from firebase_admin import credentials, firestore
-from google.cloud.firestore_v1.base_query import FieldFilter
 from typing import List, Dict, Optional
 from loguru import logger
 from datetime import datetime
+from google.cloud.firestore_v1.base_query import FieldFilter
 
-from src.config import settings
+from src.integrations.firebase_client import FirebaseClient
+from src.utils.formatters import format_phone_number
+from src.utils.validators import validate_whatsapp_number
 
 
-class FirebaseManager:
-    """Manage Firebase operations for WhatsApp users and insights"""
+class UserService:
+    """Service for managing WhatsApp users"""
     
     def __init__(self):
-        """Initialize Firebase connection"""
-        try:
-            # Check if already initialized
-            firebase_admin.get_app()
-            logger.info("Firebase already initialized")
-        except ValueError:
-            # Initialize Firebase
-            cred = credentials.Certificate(settings.firebase_credentials_dict)
-            firebase_admin.initialize_app(cred)
-            logger.info("Firebase initialized successfully")
-        
-        self.db = firestore.client()
-        self.users_collection = self.db.collection('whatsapp_users')
-        self.insights_collection = self.db.collection('insights')
-    
-    # USER MANAGEMENT
+        """Initialize user service with Firebase"""
+        self.firebase = FirebaseClient()
+        self.users_collection = self.firebase.get_collection('whatsapp_users')
     
     def add_user(self, phone: str, name: str, frequency: str = "weekly", 
                  active: bool = True) -> str:
@@ -46,8 +33,6 @@ class FirebaseManager:
         Returns:
             User document ID
         """
-        from src.utils import format_phone_number, validate_whatsapp_number
-        
         formatted_phone = format_phone_number(phone)
         
         if not validate_whatsapp_number(formatted_phone):
@@ -96,8 +81,6 @@ class FirebaseManager:
         Returns:
             User dictionary with ID, or None if not found
         """
-        from src.utils import format_phone_number
-        
         formatted_phone = format_phone_number(phone)
         docs = self.users_collection.where(filter=FieldFilter('phone', '==', formatted_phone)).limit(1).stream()
         
@@ -120,61 +103,22 @@ class FirebaseManager:
         })
         logger.debug(f"Updated last_sent for user {user_id}")
     
-    # INSIGHTS MANAGEMENT
-    
-    def save_insights(self, user_id: str, insights_data: Dict):
+    def deactivate_user(self, user_id: str):
         """
-        Save insights for a specific user
-        
-        Args:
-            user_id: User's Firebase document ID
-            insights_data: Dictionary of insight metrics
-        """
-        insight_doc = {
-            "user_id": user_id,
-            "generated_at": datetime.now(),
-            "data": insights_data
-        }
-        
-        # Use user_id as document ID to easily overwrite weekly
-        self.insights_collection.document(user_id).set(insight_doc)
-        logger.info(f"Saved insights for user {user_id}")
-    
-    def get_insights(self, user_id: str) -> Optional[Dict]:
-        """
-        Get insights for a specific user
-        
-        Args:
-            user_id: User's Firebase document ID
-            
-        Returns:
-            Insights dictionary or None
-        """
-        doc = self.insights_collection.document(user_id).get()
-        
-        if doc.exists:
-            return doc.to_dict()
-        return None
-    
-    def delete_user(self, user_id: str):
-        """
-        Delete a user (soft delete by setting active=False)
+        Deactivate a user (soft delete)
         
         Args:
             user_id: User's Firebase document ID
         """
         self.users_collection.document(user_id).update({'active': False})
         logger.info(f"Deactivated user {user_id}")
-
-
-if __name__ == "__main__":
-    # Test Firebase connection
-    try:
-        fm = FirebaseManager()
-        print("✅ Firebase connection successful!")
+    
+    def reactivate_user(self, user_id: str):
+        """
+        Reactivate a user
         
-        # Test getting users
-        users = fm.get_all_active_users()
-        print(f"Found {len(users)} active users")
-    except Exception as e:
-        print(f"❌ Firebase connection failed: {e}")
+        Args:
+            user_id: User's Firebase document ID
+        """
+        self.users_collection.document(user_id).update({'active': True})
+        logger.info(f"Reactivated user {user_id}")
