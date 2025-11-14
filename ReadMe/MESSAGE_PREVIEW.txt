@@ -1,0 +1,78 @@
+╔══════════════════════════════════════════════════════════════════════╗
+║                 YOUR WHATSAPP MESSAGE PREVIEW                        ║
+╚══════════════════════════════════════════════════════════════════════╝
+
+When you run the system, Melville will receive this WhatsApp message:
+
+┌─────────────────────────────────────────────────────────────────────┐
+│                                                                       │
+│  📊 *Weekly Property Insights for Melville du Plessis*              │
+│                                                                       │
+│  📈 Leads: 230                                                       │
+│  🌐 Most Active Portal: P24 - 60% of leads                          │
+│  💼 New Offers: 3                                                    │
+│  🏠 Sales: 2                                                         │
+│  💰 Revenue: R8mil                                                   │
+│  🎯 Commission: R150k                                                │
+│                                                                       │
+│  _Generated on 13 November 2025_                                     │
+│                                                                       │
+└─────────────────────────────────────────────────────────────────────┘
+
+═══════════════════════════════════════════════════════════════════════
+
+📊 FIREBASE STRUCTURE:
+
+Collection: whatsapp_users
+└─ Document: (auto-generated ID)
+    ├─ name: "Melville du Plessis"
+    ├─ phone: "27727377590"
+    ├─ frequency: "weekly"
+    ├─ active: true
+    ├─ created_at: timestamp
+    └─ last_sent: null
+
+Collection: insights
+└─ Document: (same ID as user)
+    ├─ user_id: "(user doc id)"
+    ├─ generated_at: timestamp
+    └─ data:
+        ├─ leads: 230
+        ├─ most_active_portal: "P24 - 60% of leads"
+        ├─ new_offers: 3
+        ├─ sales: 2
+        ├─ revenue: "R8mil"
+        └─ commission: "R150k"
+
+═══════════════════════════════════════════════════════════════════════
+
+🚀 TO SEND THIS MESSAGE:
+
+Step 1: Setup user and insights
+  python setup_melville.py
+
+Step 2: Send WhatsApp message
+  python -m src.scheduler --once
+
+═══════════════════════════════════════════════════════════════════════
+
+💡 CUSTOMIZING INSIGHTS:
+
+To change the metrics shown:
+  1. Edit: src/insight_generator.py
+  2. Add your database queries
+  3. Return dict with your metrics
+
+Example:
+  insights = {
+      "leads": query_leads(),
+      "most_active_portal": query_portal(),
+      "new_offers": query_offers(),
+      "sales": query_sales(),
+      "revenue": query_revenue(),
+      "commission": query_commission()
+  }
+
+The message formatter will automatically include them!
+
+═══════════════════════════════════════════════════════════════════════

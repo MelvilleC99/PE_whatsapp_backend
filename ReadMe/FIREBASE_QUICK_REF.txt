@@ -1,0 +1,60 @@
+╔══════════════════════════════════════════════════════════════════════╗
+║                    FIREBASE QUICK REFERENCE                          ║
+╚══════════════════════════════════════════════════════════════════════╝
+
+📁 TWO COLLECTIONS NEEDED:
+
+1️⃣  whatsapp_users
+   └─ Stores: User info & preferences
+   └─ Fields:
+       • name: "John Smith"
+       • phone: "27821234567"
+       • frequency: "weekly"
+       • active: true
+       • created_at: timestamp
+       • last_sent: timestamp
+
+2️⃣  insights
+   └─ Stores: Generated insights (overwritten weekly)
+   └─ Fields:
+       • user_id: "abc123"
+       • generated_at: timestamp
+       • data:
+           - sales_change: "+5%"
+           - active_listings: 45
+           - avg_price: "R450K"
+           - sales_velocity: "12 days"
+
+═══════════════════════════════════════════════════════════════════════
+
+🚀 SETUP COMMANDS:
+
+  python setup_firebase.py     ← Creates collections automatically
+  python add_test_user.py      ← Add yourself as test user
+  python test_setup.py         ← Verify everything works
+
+═══════════════════════════════════════════════════════════════════════
+
+📊 HOW DATA FLOWS:
+
+  1. Add User → whatsapp_users collection
+  2. Generate Insights → insights collection
+  3. Send WhatsApp → Uses data from both collections
+
+═══════════════════════════════════════════════════════════════════════
+
+💡 KEY POINTS:
+
+  ✓ Collections auto-create on first document
+  ✓ User ID links both collections
+  ✓ Insights overwrite weekly (saves storage)
+  ✓ Set active=false to pause user
+  ✓ Phone must be E.164 format (27...)
+
+═══════════════════════════════════════════════════════════════════════
+
+🌐 VIEW IN CONSOLE:
+
+  https://console.firebase.google.com/project/proptech-email-management/firestore
+
+═══════════════════════════════════════════════════════════════════════

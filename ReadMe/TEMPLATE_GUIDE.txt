@@ -1,0 +1,183 @@
+╔══════════════════════════════════════════════════════════════════════╗
+║            WHATSAPP TEMPLATE GUIDE - insights_dashboard              ║
+╚══════════════════════════════════════════════════════════════════════╝
+
+📋 YOUR CURRENT TEMPLATE:
+
+Name: insights_dashboard
+Body: "Hi {{name}} View your weekly insights summary"
+Button: "View Dashboard" → Static URL
+
+═══════════════════════════════════════════════════════════════════════
+
+🤔 SHOULD YOU MODIFY THE TEMPLATE?
+
+Current Template:
+┌─────────────────────────────────────────────────────────────────────┐
+│ Hi Melville                                                          │
+│ View your weekly insights summary                                   │
+│                                                                       │
+│ [View Dashboard Button]                                              │
+└─────────────────────────────────────────────────────────────────────┘
+
+❌ PROBLEM: This just links to a dashboard, doesn't show the actual insights!
+
+Better Template Would Be:
+┌─────────────────────────────────────────────────────────────────────┐
+│ 📊 Weekly Insights for Melville                                     │
+│                                                                       │
+│ Leads: 230                                                           │
+│ Portal: P24 (60%)                                                    │
+│ Offers: 3                                                            │
+│ Sales: 2                                                             │
+│ Revenue: R8mil                                                       │
+│ Commission: R150k                                                    │
+│                                                                       │
+│ [View Full Dashboard]                                                │
+└─────────────────────────────────────────────────────────────────────┘
+
+═══════════════════════════════════════════════════════════════════════
+
+💡 RECOMMENDED: Create a Better Template
+
+Go to: https://business.facebook.com → WhatsApp Manager → Message Templates
+
+Template Name: weekly_insights
+Category: UTILITY (or MARKETING)
+Language: English
+
+Header: None
+
+Body:
+📊 *Weekly Insights for {{1}}*
+
+📈 Leads: {{2}}
+🌐 Most Active: {{3}}
+💼 New Offers: {{4}}
+🏠 Sales: {{5}}
+💰 Revenue: {{6}}
+🎯 Commission: {{7}}
+
+_Your weekly performance summary_
+
+Footer: None
+
+Buttons:
+- [View Full Dashboard] → https://your-dashboard-url.com
+
+═══════════════════════════════════════════════════════════════════════
+
+🔧 TWO APPROACHES:
+
+Option 1: Use Current Template (Simple but less info)
+━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
+✅ No changes needed
+✅ Works now
+❌ Only shows link, no actual insights
+❌ User must click to see data
+
+Code:
+  from src.whatsapp_templates import WhatsAppTemplateManager
+  
+  manager = WhatsAppTemplateManager()
+  manager.send_insights_dashboard_template(
+      to="27727377590",
+      name="Melville",
+      dashboard_url="https://your-dashboard.com/melville"
+  )
+
+───────────────────────────────────────────────────────────────────────
+
+Option 2: Create New Template (Better!)
+━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
+✅ Shows actual insights in WhatsApp
+✅ User sees data immediately
+✅ Optional dashboard link for details
+⏱️ Takes 15 min for Meta approval
+
+Steps:
+  1. Create template in Meta Business Manager
+  2. Wait for approval (~15 minutes)
+  3. Use the new template
+
+Code:
+  manager.send_generic_template(
+      to="27727377590",
+      template_name="weekly_insights",
+      body_params=[
+          "Melville",           # {{1}} name
+          "230",                # {{2}} leads
+          "P24 - 60%",          # {{3}} portal
+          "3",                  # {{4}} offers
+          "2",                  # {{5}} sales
+          "R8mil",              # {{6}} revenue
+          "R150k"               # {{7}} commission
+      ]
+  )
+
+═══════════════════════════════════════════════════════════════════════
+
+🎯 MY RECOMMENDATION:
+
+Create the better template! Here's why:
+
+1. Users see insights IMMEDIATELY (no clicking)
+2. More engaging and useful
+3. Still has dashboard link for details
+4. Only takes 15 min to get approved
+
+═══════════════════════════════════════════════════════════════════════
+
+📝 HOW TO CREATE NEW TEMPLATE:
+
+1. Go to: https://business.facebook.com
+2. Left menu → WhatsApp Manager
+3. Click "Message Templates"
+4. Click "Create Template"
+5. Fill in:
+   - Name: weekly_insights
+   - Category: UTILITY
+   - Language: English
+   - Body: (copy from above with {{1}}, {{2}}, etc.)
+   - Button: URL with your dashboard link
+6. Submit for approval
+7. Wait ~15 minutes
+8. Test with test_template.py
+
+═══════════════════════════════════════════════════════════════════════
+
+🧪 TESTING YOUR CURRENT TEMPLATE:
+
+Right now, test what you have:
+
+  python test_template.py
+
+This will send your current template to see how it looks!
+
+═══════════════════════════════════════════════════════════════════════
+
+💬 TEMPLATE vs REGULAR MESSAGES:
+
+Templates (insights_dashboard):
+  ✅ No 24-hour window needed
+  ✅ Can send anytime
+  ✅ Must be pre-approved
+  ❌ Can't customize text freely
+  ❌ Limited variables
+
+Regular Messages:
+  ❌ Need 24-hour conversation window
+  ✅ Fully customizable
+  ✅ Can send any content
+  ✅ No approval needed
+
+Best Approach:
+  → Use templates for initial contact
+  → Once user replies, conversation window opens
+  → Then you can send custom messages with full insights!
+
+═══════════════════════════════════════════════════════════════════════
+
+Ready to test current template? Run:
+
+  python test_template.py

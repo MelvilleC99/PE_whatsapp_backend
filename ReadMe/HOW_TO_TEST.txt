@@ -1,0 +1,124 @@
+╔══════════════════════════════════════════════════════════════════════╗
+║                    HOW TO TEST & USE                                 ║
+╚══════════════════════════════════════════════════════════════════════╝
+
+📋 TWO WAYS TO SEND MESSAGES:
+
+1️⃣  FOR TESTING (No Database Needed)
+   Uses insights already saved in Firebase
+
+   Commands:
+   ./send_test.sh
+   
+   OR manually:
+   python send_from_firebase.py
+
+   ✅ Perfect for testing!
+   ✅ No database connection required
+   ✅ Uses sample data you already saved
+
+───────────────────────────────────────────────────────────────────────
+
+2️⃣  FOR PRODUCTION (With Database)
+   Queries database, generates fresh insights, then sends
+
+   Commands:
+   python -m src.scheduler --once        # Run once
+   python -m src.scheduler               # Schedule weekly
+
+   ⚠️  Requires database connection
+   ✅ Generates fresh insights from DB
+   ✅ Saves to Firebase, then sends WhatsApp
+
+═══════════════════════════════════════════════════════════════════════
+
+🎯 TESTING WORKFLOW:
+
+Step 1: Setup (one time)
+  python setup_melville.py
+
+  This creates:
+  - Your user in Firebase
+  - Sample insights in Firebase
+
+Step 2: Test sending
+  ./send_test.sh
+
+  This:
+  - Reads insights from Firebase
+  - Sends WhatsApp to +27727377590
+  - No database needed!
+
+Step 3: Check your phone
+  You should receive the WhatsApp message! 📱
+
+═══════════════════════════════════════════════════════════════════════
+
+🏭 PRODUCTION WORKFLOW:
+
+Once your database is connected:
+
+Weekly (automatic):
+  python -m src.scheduler
+
+  Runs every Monday at 9 AM:
+  1. Queries database for each user
+  2. Generates insights
+  3. Saves to Firebase
+  4. Sends WhatsApp messages
+
+Manual (one-time):
+  python -m src.scheduler --once
+
+  Runs immediately once:
+  1-4. Same as above
+
+═══════════════════════════════════════════════════════════════════════
+
+📁 FILES EXPLAINED:
+
+send_from_firebase.py
+  → TEST tool: Sends using saved Firebase insights
+  → No database needed
+  → Perfect for testing WhatsApp integration
+
+src/scheduler.py
+  → PRODUCTION tool: Queries DB, generates insights, sends
+  → Requires database connection
+  → For scheduled weekly runs
+
+═══════════════════════════════════════════════════════════════════════
+
+🔧 CUSTOMIZING INSIGHTS:
+
+To add your real database queries:
+
+1. Edit: src/insight_generator.py
+
+2. Update the query methods:
+   - _calculate_sales_change()
+   - _get_active_listings()
+   - etc.
+
+3. Add your database schema/tables
+
+4. Return dict with your metrics:
+   {
+       "leads": 230,
+       "most_active_portal": "P24 - 60%",
+       "new_offers": 3,
+       "sales": 2,
+       "revenue": "R8mil",
+       "commission": "R150k"
+   }
+
+5. Test with:
+   python -m src.scheduler --once
+
+═══════════════════════════════════════════════════════════════════════
+
+✅ READY TO TEST NOW:
+
+Run: ./send_test.sh
+
+This will send you a WhatsApp with the sample insights!

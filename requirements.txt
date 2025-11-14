@@ -1,0 +1,32 @@
+# Core Dependencies
+python-dotenv==1.0.0          # Environment variable management
+requests==2.31.0               # HTTP requests for Meta API
+flask==3.0.0                   # Webhook server
+gunicorn==21.2.0               # Production WSGI server
+
+# Firebase
+firebase-admin==6.3.0          # Firebase Admin SDK
+
+# Database (choose based on your DB)
+psycopg2-binary==2.9.9        # PostgreSQL
+# pymysql==1.1.0              # MySQL (uncomment if using MySQL)
+# pymongo==4.6.1              # MongoDB (uncomment if using MongoDB)
+
+# Scheduling
+schedule==1.2.0                # Simple job scheduling
+APScheduler==3.10.4            # Advanced scheduling (alternative)
+
+# Utilities
+pytz==2023.3                   # Timezone support
+pydantic==2.5.0                # Data validation
+pydantic-settings==2.1.0       # Settings management
+
+# Logging
+loguru==0.7.2                  # Better logging
+
+# Development Dependencies (optional)
+pytest==7.4.3                  # Testing
+pytest-cov==4.1.0              # Test coverage
+black==23.12.1                 # Code formatting
+flake8==6.1.0                  # Linting
+mypy==1.7.1                    # Type checking
