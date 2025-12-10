@@ -1,0 +1,532 @@
+# Firebase Schema Documentation
+# WhatsApp Listing Intake System
+# Updated: December 2024
+
+collections:
+
+  # ============================================
+  # AGENTS
+  # Known agents from the agency system
+  # Used to auto-populate user info during registration
+  # ============================================
+  agents:
+    description: "Known agents with agency/office info for registration lookup"
+    document_id_format: "{phone}"
+    fields:
+      phone:
+        type: string
+        required: true
+        description: "Phone number (e.g., 27765144639)"
+      agent_id:
+        type: string
+        required: true
+        description: "Unique agent ID (e.g., A001)"
+      first_name:
+        type: string
+        required: true
+      last_name:
+        type: string
+        required: true
+      full_name:
+        type: string
+        required: true
+      email:
+        type: string
+        required: false
+      office_id:
+        type: string
+        required: true
+        description: "Office identifier (e.g., OFF001)"
+      office_name:
+        type: string
+        required: true
+        description: "Office name (e.g., Cape Town)"
+      agency_id:
+        type: string
+        required: true
+        description: "Agency identifier (e.g., AG001)"
+      agency_name:
+        type: string
+        required: true
+        description: "Agency name (e.g., Betterhome)"
+      status:
+        type: string
+        required: true
+        enum: ["active", "inactive"]
+        default: "active"
+      created_at:
+        type: timestamp
+        required: true
+
+  # ============================================
+  # WHATSAPP USERS
+  # Registered users and their permissions
+  # ============================================
+  whatsapp_users:
+    description: "Registered WhatsApp users with permissions"
+    document_id_format: "{phone}"
+    fields:
+      phone:
+        type: string
+        required: true
+        description: "Phone number (e.g., 27765144639)"
+      name:
+        type: string
+        required: true
+        description: "Full name"
+      agent_id:
+        type: string
+        required: false
+        description: "Link to agent in agents collection"
+      agency_id:
+        type: string
+        required: false
+      agency_name:
+        type: string
+        required: false
+      office_id:
+        type: string
+        required: false
+      office_name:
+        type: string
+        required: false
+      email:
+        type: string
+        required: false
+      active:
+        type: boolean
+        required: true
+        default: true
+      status:
+        type: string
+        enum: ["active", "inactive", "suspended"]
+        default: "active"
+      created_at:
+        type: timestamp
+        required: true
+      registered_at:
+        type: timestamp
+        required: true
+      
+      # Permissions object
+      permissions:
+        type: object
+        fields:
+          insights:
+            enabled:
+              type: boolean
+              default: true
+            frequency:
+              type: string
+              enum: ["daily", "weekly", "monthly"]
+              default: "weekly"
+            last_sent:
+              type: timestamp
+              nullable: true
+          
+          listing_intake:
+            enabled:
+              type: boolean
+              default: true
+            requires_confirmation:
+              type: boolean
+              default: true
+            max_drafts:
+              type: integer
+              default: 10
+          
+          listing_query:
+            enabled:
+              type: boolean
+              default: true
+
+  # ============================================
+  # TRANSCRIPTIONS
+  # Voice note transcriptions
+  # ============================================
+  transcriptions:
+    description: "Audio transcriptions from WhatsApp voice notes"
+    document_id_format: "{phone}_{YYYYMMDD_HHMMSS}"
+    fields:
+      phone:
+        type: string
+        required: true
+      profile_name:
+        type: string
+        required: false
+      audio_id:
+        type: string
+        required: true
+      message_id:
+        type: string
+        required: false
+      text:
+        type: string
+        required: true
+      original_timestamp:
+        type: string
+        required: false
+      transcribed_at:
+        type: string (ISO 8601)
+        required: true
+      mime_type:
+        type: string
+        required: false
+      word_count:
+        type: integer
+        required: true
+
+  # ============================================
+  # CONVERSATIONS
+  # Recent message history per user
+  # ============================================
+  conversations:
+    description: "Recent conversation history for context"
+    document_id_format: "{phone}"
+    fields:
+      messages:
+        type: array
+        max_items: 5
+        description: "Last 5 messages"
+      pending_workflow:
+        type: string
+        required: false
+      pending_data:
+        type: object
+        required: false
+      updated_at:
+        type: timestamp
+        required: true
+
+  # ============================================
+  # SESSION STATE
+  # Mid-workflow state with expiry
+  # ============================================
+  session_state:
+    description: "Temporary workflow state (expires after 30 min)"
+    document_id_format: "{phone}"
+    fields:
+      workflow:
+        type: string
+        required: true
+      step:
+        type: string
+        required: true
+      data:
+        type: object
+        required: false
+      started_at:
+        type: timestamp
+        required: true
+      updated_at:
+        type: timestamp
+        required: true
+      expires_at:
+        type: timestamp
+        required: true
+
+  # ============================================
+  # LISTING DRAFTS
+  # Draft listings created via WhatsApp
+  # ============================================
+  listing_drafts:
+    description: "Draft property listings from WhatsApp intake"
+    document_id_format: "draft_{phone}_{YYYYMMDD_HHMMSS}"
+    
+    fields:
+      # --- METADATA ---
+      id:
+        type: string
+        required: true
+      status:
+        type: string
+        required: true
+        enum: ["draft", "pending_confirmation", "confirmed", "written_to_db", "rejected"]
+        default: "draft"
+      source:
+        type: string
+        required: true
+        default: "whatsapp"
+      listing_agent_phone:
+        type: string
+        required: true
+        description: "Phone of agent who created this"
+      listing_agent_name:
+        type: string
+        required: false
+      agent_id:
+        type: integer
+        required: false
+        description: "MySQL agent ID for DB writes"
+      raw_input:
+        type: string
+        required: true
+        description: "Original transcribed text"
+      created_at:
+        type: timestamp
+        required: true
+      updated_at:
+        type: timestamp
+        required: true
+
+      # --- TIER 1: CORE (Always Extract) ---
+      residential_listing_type:
+        type: string
+        required: true
+        enum: ["sale", "rent"]
+        description: "For sale or to let"
+      property_category:
+        type: string
+        required: true
+        enum: ["residential", "commercial", "industrial", "farm"]
+        default: "residential"
+      property_type:
+        type: string
+        required: true
+        description: "cluster, house, apartment, townhouse, etc."
+      suburb:
+        type: string
+        required: true
+      city:
+        type: string
+        required: false
+      bedrooms:
+        type: integer
+        required: true
+      bathrooms:
+        type: integer
+        required: true
+      garages:
+        type: integer
+        required: false
+        default: 0
+      listing_price:
+        type: decimal
+        required: true
+        description: "Sale price or rental amount"
+
+      # --- TIER 2: ADDRESS DETAILS ---
+      street_number:
+        type: string
+        required: false
+      street_name:
+        type: string
+        required: false
+      complex_name:
+        type: string
+        required: false
+        description: "Estate or complex name"
+      postal_code:
+        type: string
+        required: false
+      province:
+        type: string
+        required: false
+
+      # --- TIER 2: PROPERTY DETAILS ---
+      property_title:
+        type: string
+        required: false
+        description: "Custom listing title"
+      property_headline:
+        type: string
+        required: false
+        description: "Short tagline"
+      erf_size:
+        type: integer
+        required: false
+        description: "Land size in m²"
+      floor_size:
+        type: integer
+        required: false
+        description: "Floor size in m²"
+      build_year:
+        type: integer
+        required: false
+
+      # --- TIER 2: PROPERTY FLAGS ---
+      is_security_estate:
+        type: boolean
+        default: false
+      is_retirement:
+        type: boolean
+        default: false
+      is_furnished:
+        type: boolean
+        default: false
+
+      # --- TIER 2: PRICING FLAGS ---
+      is_price_on_application:
+        type: boolean
+        default: false
+      is_no_transfer_duty:
+        type: boolean
+        default: false
+      is_distress_sale:
+        type: boolean
+        default: false
+      is_bank_repossessed:
+        type: boolean
+        default: false
+      is_public_tender:
+        type: boolean
+        default: false
+      is_auction:
+        type: boolean
+        default: false
+
+      # --- TIER 2: FINANCIALS ---
+      levies:
+        type: decimal
+        required: false
+        description: "Monthly levies"
+      rates:
+        type: decimal
+        required: false
+        description: "Monthly rates"
+      mandate_type:
+        type: string
+        required: false
+        enum: ["exclusive", "dual", "shared", "open"]
+
+      # --- TIER 2: ROOM COUNTS ---
+      kitchens:
+        type: integer
+        required: false
+      lounges:
+        type: integer
+        required: false
+      dining_rooms:
+        type: integer
+        required: false
+      family_rooms:
+        type: integer
+        required: false
+      studies:
+        type: integer
+        required: false
+      parking_bays:
+        type: integer
+        required: false
+      carports:
+        type: integer
+        required: false
+
+      # --- TIER 2: ADDITIONAL AREAS ---
+      has_entrance_hall:
+        type: boolean
+        default: false
+      has_balcony:
+        type: boolean
+        default: false
+      has_patio:
+        type: boolean
+        default: false
+      has_laundry:
+        type: boolean
+        default: false
+      has_braai_room:
+        type: boolean
+        default: false
+      has_storeroom:
+        type: boolean
+        default: false
+
+      # --- TIER 2: ACCOMMODATION ---
+      has_flatlet:
+        type: boolean
+        default: false
+      has_domestic_accommodation:
+        type: boolean
+        default: false
+
+      # --- TIER 3: SCENIC VIEWS ---
+      has_sea_view:
+        type: boolean
+        default: false
+      has_mountain_view:
+        type: boolean
+        default: false
+      has_fairway_view:
+        type: boolean
+        default: false
+      has_near_beach:
+        type: boolean
+        default: false
+      has_forest_view:
+        type: boolean
+        default: false
+      has_river_view:
+        type: boolean
+        default: false
+      has_riverfront:
+        type: boolean
+        default: false
+      has_marina:
+        type: boolean
+        default: false
+      has_lakefront:
+        type: boolean
+        default: false
+
+      # --- TIER 3: MAIN FEATURES ---
+      has_pool:
+        type: boolean
+        default: false
+      has_garden:
+        type: boolean
+        default: false
+      is_pet_friendly:
+        type: boolean
+        default: false
+      has_built_in_braai:
+        type: boolean
+        default: false
+      has_built_in_cupboards:
+        type: boolean
+        default: false
+      has_fireplace:
+        type: boolean
+        default: false
+
+      # --- TIER 3: SOLAR & BACKUP ---
+      has_solar_panels:
+        type: boolean
+        default: false
+      has_backup_battery:
+        type: boolean
+        default: false
+      has_solar_geyser:
+        type: boolean
+        default: false
+      has_generator:
+        type: boolean
+        default: false
+
+      # --- TIER 3: WATER ---
+      has_borehole:
+        type: boolean
+        default: false
+      has_wellpoint:
+        type: boolean
+        default: false
+      has_water_tank:
+        type: boolean
+        default: false
+
+      # --- TIER 3: SECURITY ---
+      has_24hr_access:
+        type: boolean
+        default: false
+      has_electric_fencing:
+        type: boolean
+        default: false
+      has_security_gate:
+        type: boolean
+        default: false
+      has_alarm:
+        type: boolean
+        default: false
+      has_cctv:
+        type: boolean
+        default: false

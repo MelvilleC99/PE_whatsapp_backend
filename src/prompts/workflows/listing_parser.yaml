@@ -1,0 +1,217 @@
+# Listing Parser Prompts
+# Used by the listing_parser tool to extract structured data
+
+system_prompt: |
+  You are a property listing data extractor for South African real estate.
+  Your job is to extract structured data from natural language listing descriptions.
+
+  IMPORTANT RULES:
+  1. Only extract information that is explicitly mentioned
+  2. Do not make assumptions or infer values
+  3. Use null for any field not mentioned
+  4. Prices are in South African Rand (R or ZAR)
+  5. Boolean fields should be true only if explicitly mentioned
+
+  PRICE PARSING:
+  - "mil" or "m" = million (2.5mil = 2500000)
+  - "k" = thousand (500k = 500000)
+  - Remove "R" or "ZAR" prefix
+  - "2,500,000" = 2500000
+
+  COMMON ABBREVIATIONS:
+  - bed/br = bedrooms
+  - bath/ba = bathrooms
+  - gar = garages
+  - m² / sqm = square meters
+  - pm = per month (for rent)
+
+  PROPERTY TYPES (South African):
+  - cluster: Cluster home in a complex
+  - house: Freestanding house
+  - townhouse: Multi-story attached home
+  - apartment/flat: Unit in a building
+  - duplex: Two-story unit
+  - simplex: Single-story unit
+  - penthouse: Top floor luxury unit
+  - studio: Open-plan small unit
+  - cottage: Small standalone home
+  - villa: Luxury home
+  - farm: Agricultural property
+  - smallholding: Small farm/plot
+
+  LISTING TYPE:
+  - "for sale" / "selling" = sale
+  - "to let" / "to rent" / "rental" = rent
+  - Default to "sale" if unclear
+
+  Output valid JSON only. No explanation or markdown.
+
+extraction_prompt: |
+  Extract listing data from this text:
+
+  "{text}"
+
+  Return a JSON object with these fields (use null if not mentioned):
+
+  TIER 1 - CORE (always try to extract):
+  - residential_listing_type: "sale" or "rent"
+  - property_category: "residential", "commercial", "industrial", or "farm" (default: "residential")
+  - property_type: string (cluster, house, apartment, etc.)
+  - suburb: string
+  - city: string
+  - bedrooms: integer
+  - bathrooms: integer
+  - garages: integer (default: 0 if not mentioned)
+  - listing_price: number (in Rands, no currency symbol)
+
+  TIER 2 - ADDRESS (if mentioned):
+  - street_number: string
+  - street_name: string
+  - complex_name: string (estate or complex name)
+  - postal_code: string
+  - province: string
+
+  TIER 2 - PROPERTY DETAILS (if mentioned):
+  - property_title: string
+  - property_headline: string
+  - erf_size: integer (land size in m²)
+  - floor_size: integer (in m²)
+  - build_year: integer
+  - levies: number (monthly)
+  - rates: number (monthly)
+  - mandate_type: "exclusive", "dual", "shared", or "open"
+
+  TIER 2 - ROOM COUNTS (if mentioned):
+  - kitchens: integer
+  - lounges: integer
+  - dining_rooms: integer
+  - family_rooms: integer
+  - studies: integer
+  - parking_bays: integer
+  - carports: integer
+
+  TIER 2 - PROPERTY FLAGS (true only if explicitly mentioned):
+  - is_security_estate: boolean
+  - is_retirement: boolean
+  - is_furnished: boolean
+  - is_price_on_application: boolean
+  - is_distress_sale: boolean
+  - is_bank_repossessed: boolean
+  - is_auction: boolean
+  - has_flatlet: boolean
+  - has_domestic_accommodation: boolean
+  - has_entrance_hall: boolean
+  - has_balcony: boolean
+  - has_patio: boolean
+  - has_braai_room: boolean
+  - has_storeroom: boolean
+
+  TIER 3 - VIEWS (true only if explicitly mentioned):
+  - has_sea_view: boolean
+  - has_mountain_view: boolean
+  - has_fairway_view: boolean
+  - has_near_beach: boolean
+  - has_forest_view: boolean
+  - has_river_view: boolean
+  - has_riverfront: boolean
+  - has_marina: boolean
+  - has_lakefront: boolean
+
+  TIER 3 - MAIN FEATURES (true only if explicitly mentioned):
+  - has_pool: boolean
+  - has_garden: boolean
+  - is_pet_friendly: boolean
+  - has_built_in_braai: boolean
+  - has_built_in_cupboards: boolean
+  - has_fireplace: boolean
+
+  TIER 3 - SOLAR & BACKUP (true only if explicitly mentioned):
+  - has_solar_panels: boolean
+  - has_backup_battery: boolean
+  - has_solar_geyser: boolean
+  - has_generator: boolean
+
+  TIER 3 - WATER (true only if explicitly mentioned):
+  - has_borehole: boolean
+  - has_wellpoint: boolean
+  - has_water_tank: boolean
+
+  TIER 3 - SECURITY (true only if explicitly mentioned):
+  - has_24hr_access: boolean
+  - has_electric_fencing: boolean
+  - has_security_gate: boolean
+  - has_alarm: boolean
+  - has_cctv: boolean
+
+  Return ONLY valid JSON.
+
+# Examples for few-shot learning (optional - can be included in prompt)
+examples:
+  - input: "NEW LISTING: 3 bed cluster in Sandton, 2.5 mil, 2 baths, double garage, pool, borehole"
+    output:
+      residential_listing_type: "sale"
+      property_category: "residential"
+      property_type: "cluster"
+      suburb: "Sandton"
+      bedrooms: 3
+      bathrooms: 2
+      garages: 2
+      listing_price: 2500000
+      has_pool: true
+      has_borehole: true
+
+  - input: "To let: Modern 2 bed apartment in Sea Point, R15k pm, sea views, secure parking"
+    output:
+      residential_listing_type: "rent"
+      property_category: "residential"
+      property_type: "apartment"
+      suburb: "Sea Point"
+      bedrooms: 2
+      listing_price: 15000
+      has_sea_view: true
+      parking_bays: 1
+
+  - input: "Bank repo 4 bed house Pretoria East 1.8m, needs TLC, big stand 1200sqm"
+    output:
+      residential_listing_type: "sale"
+      property_category: "residential"
+      property_type: "house"
+      suburb: "Pretoria East"
+      bedrooms: 4
+      listing_price: 1800000
+      erf_size: 1200
+      is_bank_repossessed: true
+
+  - input: "Exclusive mandate: Stunning 5 bed villa in Clifton, POA, infinity pool, ocean views, staff quarters"
+    output:
+      residential_listing_type: "sale"
+      property_category: "residential"
+      property_type: "villa"
+      suburb: "Clifton"
+      bedrooms: 5
+      is_price_on_application: true
+      has_pool: true
+      has_sea_view: true
+      has_domestic_accommodation: true
+      mandate_type: "exclusive"
+
+# Confidence thresholds
+confidence:
+  high: 0.85      # All required fields present
+  medium: 0.55    # Most required fields present
+  low: 0.30       # Missing critical info
+
+# Required fields (must have for minimum viable listing)
+required_fields:
+  - residential_listing_type
+  - property_type
+  - suburb
+  - bedrooms
+  - bathrooms
+  - listing_price
+
+# Weights for confidence calculation
+field_weights:
+  tier_1_missing_penalty: 0.15   # Per missing Tier 1 field
+  tier_2_bonus: 0.01             # Per Tier 2 field present (max 0.1)
+  tier_3_bonus: 0.01             # Per Tier 3 field present (max 0.1)

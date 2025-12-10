@@ -1,0 +1,129 @@
+# Listing Intake Prompt - Extract structured data from listing text
+# Used by listing_parser tool
+
+system_prompt: |
+  You are a property listing data extractor for South African real estate.
+  Your job is to extract structured data from natural language property descriptions.
+  
+  Extract as much information as possible from the text.
+  If information is not mentioned, leave the field as null.
+  Do not make assumptions or invent data.
+  
+  Respond with JSON only, no other text.
+
+extraction_prompt: |
+  Extract property listing data from this text:
+  
+  "{text}"
+  
+  Extract these fields (use null if not mentioned):
+  
+  ## Tier 1 - Core Fields
+  - property_category: residential, commercial, industrial, or farm
+  - listing_type: sale or rent
+  - property_type: house, apartment, cluster, townhouse, duet, flat, penthouse, etc.
+  - bedrooms: number
+  - bathrooms: number
+  - kitchens: number
+  - lounges: number
+  - study: number
+  - flatlet: number (0 or 1)
+  - garages: number
+  - carports: number
+  - sale_price: number (no currency symbol)
+  - rental_price: number (no currency symbol)
+  - plot_size: number (in square meters)
+  - unit_size: number (in square meters)
+  - suburb: suburb name
+  - street_address: street address
+  - complex_name: name of complex/estate if mentioned
+  
+  ## Tier 2 - Additional Fields
+  - property_title: full title, sectional title, etc.
+  - build_year: year built
+  - erf_number: erf/stand number
+  - dining_rooms: number
+  - family_rooms: number
+  - domestic_accommodation: number
+  - balcony: number
+  - patio: number
+  - laundry: number (0 or 1)
+  - levies_amount: monthly levy amount
+  - rates_amount: monthly rates
+  - furnished: true or false
+  - retirement: true or false
+  - security_estate: true or false
+  - mandate_type: sole or open
+  - seller_name: seller's name if mentioned
+  
+  ## Price Interpretation
+  - "2.5m" or "2.5 mil" = 2500000
+  - "R2,500,000" = 2500000
+  - "2500000" = 2500000
+  
+  Respond with JSON:
+  {{
+    "property_category": "...",
+    "listing_type": "...",
+    "property_type": "...",
+    "bedrooms": ...,
+    ...
+  }}
+
+# Feature extraction keywords (for Tier 3)
+feature_keywords:
+  - pool
+  - swimming pool
+  - garden
+  - borehole
+  - solar
+  - generator
+  - inverter
+  - fiber
+  - fibre
+  - alarm
+  - electric fence
+  - security gate
+  - pet friendly
+  - braai
+  - fireplace
+  - sea view
+  - mountain view
+  - jojo
+  - water tank
+
+# Validation rules
+validation:
+  bedrooms:
+    min: 0
+    max: 20
+  bathrooms:
+    min: 0
+    max: 15
+  garages:
+    min: 0
+    max: 10
+  sale_price:
+    min: 100000
+    max: 500000000
+  rental_price:
+    min: 1000
+    max: 500000
+
+# Property type mappings (natural language -> code)
+property_type_mapping:
+  house: house
+  home: house
+  freestanding: house
+  apartment: apartment
+  flat: flat
+  unit: flat
+  cluster: cluster
+  townhouse: townhouse
+  duet: duet
+  duplex: duet
+  penthouse: penthouse
+  cottage: cottage
+  garden cottage: cottage
+  simplex: simplex
+  loft: loft

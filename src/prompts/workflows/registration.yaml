@@ -1,0 +1,158 @@
+# Registration Workflow - Messages & Templates
+# Clean UI with visible buttons
+# NOTE: Button titles must be max 20 characters!
+
+messages:
+  
+  # Step 1: Welcome (known agent) - show first name only
+  welcome_agent:
+    body: |
+      Hi {first_name} 👋
+      
+      *{agency}* · {office}
+    buttons:
+      - id: "confirm_name"
+        title: "✓ Confirm"
+  
+  # Step 1: Welcome (unknown user)
+  welcome_new:
+    body: |
+      Welcome to PropTech Assistant 👋
+      
+      Please reply with your first name.
+  
+  # Step 2: Service selection - visible buttons
+  service_selection:
+    body: |
+      Thanks {first_name}!
+      
+      Which services would you like to register for?
+    buttons:
+      - id: "reg_insights"
+        title: "📊 Insights"
+      - id: "reg_listings"
+        title: "🏠 Listings"
+      - id: "reg_both"
+        title: "📊🏠 Both"
+  
+  # Step 3: Success
+  success:
+    body: |
+      ✅ *Registration Complete*
+      
+      ─────────────────
+      {first_name}
+      {agency_line}
+      ─────────────────
+      
+      *Get Started:*
+      📊 Type "insights" for reports
+      🏠 Type "new listing" + property details
+  
+  success_no_agency:
+    body: |
+      ✅ *You're all set, {first_name}!*
+      
+      *Get Started:*
+      📊 Type "insights" for reports
+      🏠 Type "new listing" + property details
+  
+  # Already registered - with action buttons
+  already_registered:
+    body: |
+      Hi {first_name} 👋
+      
+      You're already registered.
+      
+      To change or cancel, select below:
+    buttons:
+      - id: "edit_registration"
+        title: "✏️ Edit"
+      - id: "cancel_registration"
+        title: "❌ Cancel"
+  
+  # Cancel confirmation
+  cancel_confirmation:
+    body: |
+      Are you sure you want to cancel your registration?
+      
+      This will remove your access to all services.
+    buttons:
+      - id: "confirm_cancel"
+        title: "Yes, Cancel"
+      - id: "keep_registration"
+        title: "No, Keep It"
+  
+  # Cancelled successfully
+  cancelled:
+    body: |
+      ✅ Your registration has been cancelled.
+      
+      You can register again anytime by typing "register".
+  
+  # Kept registration
+  kept:
+    body: |
+      ✅ No worries! Your registration is still active.
+      
+      📊 Type "insights" for reports
+      🏠 Type "new listing" + property details
+  
+  # Error
+  error:
+    body: |
+      Something went wrong 😕
+      
+      Please try again or contact support.
+
+# Service options with permissions
+service_options:
+  reg_insights:
+    name: "Insights"
+    permissions:
+      insights:
+        enabled: true
+        frequency: "weekly"
+        last_sent: null
+      listing_intake:
+        enabled: false
+        requires_confirmation: true
+        max_drafts: 0
+      listing_query:
+        enabled: false
+  
+  reg_listings:
+    name: "Listings"
+    permissions:
+      insights:
+        enabled: false
+        frequency: "weekly"
+        last_sent: null
+      listing_intake:
+        enabled: true
+        requires_confirmation: true
+        max_drafts: 10
+      listing_query:
+        enabled: true
+  
+  reg_both:
+    name: "Both"
+    permissions:
+      insights:
+        enabled: true
+        frequency: "weekly"
+        last_sent: null
+      listing_intake:
+        enabled: true
+        requires_confirmation: true
+        max_drafts: 10
+      listing_query:
+        enabled: true
+
+# Trigger keywords
+triggers:
+  - "register"
+  - "sign up"
+  - "signup"
+  - "start"
+  - "get started"

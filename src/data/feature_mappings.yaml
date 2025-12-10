@@ -1,0 +1,164 @@
+# Feature Mappings - Map natural language to database codes
+# Used by feature_mapper tool for Tier 3 feature handling
+
+# Structure:
+# Each category maps to a database field code
+# Under each category, text variations map to the database value
+
+mainFeaturesIds:
+  pool:
+    - pool
+    - swimming pool
+  garden:
+    - garden
+    - gardens
+  petFriendly:
+    - pet friendly
+    - pets allowed
+    - pets welcome
+  builtInBraai:
+    - braai
+    - built-in braai
+    - built in braai
+    - bbq
+  builtInCupboards:
+    - cupboards
+    - built-in cupboards
+    - built in cupboards
+    - bic
+  fireplace:
+    - fireplace
+    - fire place
+  greenBuilding:
+    - green building
+    - eco friendly
+    - sustainable
+
+securityIds:
+  securityGate:
+    - security gate
+    - gate
+    - security gates
+  24HourAccess:
+    - 24 hour
+    - 24hr
+    - 24 hour access
+    - 24hr access
+    - 24 hour security
+  intercom:
+    - intercom
+  alarmSystem:
+    - alarm
+    - alarm system
+    - alarms
+  electricFencing:
+    - electric fence
+    - electric fencing
+    - electrified fence
+
+waterIds:
+  borehole:
+    - borehole
+    - bore hole
+    - bore-hole
+  wellPoint:
+    - well point
+    - wellpoint
+    - well-point
+  waterTank:
+    - water tank
+    - jojo
+    - jojo tank
+    - rain water tank
+    - rainwater tank
+
+solarBackupIds:
+  solarPanels:
+    - solar
+    - solar panels
+    - solar panel
+    - pv panels
+  backupBatteryInverter:
+    - inverter
+    - battery backup
+    - backup battery
+    - battery inverter
+    - ups
+  solarGeyser:
+    - solar geyser
+    - solar water heater
+  generator:
+    - generator
+    - genny
+    - gennie
+    - gen
+
+internetIds:
+  fibre:
+    - fiber
+    - fibre
+    - fibre ready
+    - fiber ready
+  satellite:
+    - satellite
+    - satellite internet
+  adsl:
+    - adsl
+    - dsl
+  wireless:
+    - wireless
+    - wifi ready
+
+sceneryViewIds:
+  seaView:
+    - sea view
+    - ocean view
+    - sea views
+    - beach view
+  mountainView:
+    - mountain view
+    - mountain views
+  gardenView:
+    - garden view
+  cityView:
+    - city view
+    - city views
+
+additionalAreasIds:
+  entranceHall:
+    - entrance hall
+    - entrance
+    - foyer
+  balcony:
+    - balcony
+    - balconies
+  patio:
+    - patio
+    - covered patio
+  laundry:
+    - laundry
+    - laundry room
+  braaiRoom:
+    - braai room
+    - braai area
+  courtyard:
+    - courtyard
+    - court yard
+  storeroom:
+    - storeroom
+    - store room
+    - storage
+
+# Additional pricing flags (stored as pricingSettingsIds)
+pricingSettingsIds:
+  distressedSale:
+    - distressed sale
+    - distress sale
+    - urgent sale
+  bankRepossessed:
+    - bank repossessed
+    - bank repo
+    - repossessed
+  noTransferDuty:
+    - no transfer duty
+    - transfer duty exempt

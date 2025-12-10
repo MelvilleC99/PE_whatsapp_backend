@@ -49,6 +49,9 @@ class Settings(BaseSettings):
     # Scheduling
     insights_schedule: str = "0 9 * * 1"  # Every Monday at 9 AM
     
+    # OpenAI (for Whisper transcription)
+    openai_api_key: Optional[str] = None
+    
     @property
     def meta_graph_api_url(self) -> str:
         """Construct Meta Graph API base URL"""

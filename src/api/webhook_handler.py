@@ -2,36 +2,51 @@
 WhatsApp Webhook Handler - API Layer
 Receives incoming webhook requests from Meta/WhatsApp
 """
+import threading
+import time
 from flask import Flask, request, jsonify
 from loguru import logger
 
 from src.config import settings
-from src.handlers.command_handler import CommandHandler
+from src.agent.orchestrator import Orchestrator
 
 app = Flask(__name__)
 
-# Lazy load command handler
-command_handler = None
+# Lazy load orchestrator
+orchestrator = None
+
+# Simple deduplication cache (message_id -> timestamp)
+processed_messages = {}
+DEDUP_WINDOW = 300  # 5 minutes
 
 
-def get_command_handler():
-    """Lazy load command handler to avoid initialization issues"""
-    global command_handler
-    if command_handler is None:
-        command_handler = CommandHandler()
-    return command_handler
+def get_orchestrator():
+    """Lazy load orchestrator to avoid initialization issues"""
+    global orchestrator
+    if orchestrator is None:
+        orchestrator = Orchestrator()
+    return orchestrator
+
+
+def is_duplicate(message_id: str) -> bool:
+    """Check if message was already processed"""
+    global processed_messages
+    
+    # Clean old entries
+    now = time.time()
+    processed_messages = {k: v for k, v in processed_messages.items() if now - v < DEDUP_WINDOW}
+    
+    if message_id in processed_messages:
+        logger.warning(f"⚠️ Duplicate message {message_id} - skipping")
+        return True
+    
+    processed_messages[message_id] = now
+    return False
 
 
 @app.route('/webhook', methods=['GET'])
 def verify_webhook():
-    """
-    Webhook verification for Meta
-    Meta sends a GET request to verify your webhook URL
-    
-    Returns:
-        challenge: The challenge string if verification succeeds
-        403: If verification fails
-    """
+    """Webhook verification for Meta"""
     mode = request.args.get('hub.mode')
     token = request.args.get('hub.verify_token')
     challenge = request.args.get('hub.challenge')
@@ -42,59 +57,66 @@ def verify_webhook():
         logger.info("✅ Webhook verified successfully")
         return challenge, 200
     else:
-        logger.warning(
-            f"❌ Webhook verification failed - "
-            f"Expected token: {settings.webhook_verify_token}, "
-            f"Received: {token}"
-        )
+        logger.warning(f"❌ Webhook verification failed")
         return 'Forbidden', 403
+
+
+def process_webhook_async(data: dict):
+    """Process webhook in background thread"""
+    try:
+        orch = get_orchestrator()
+        
+        for entry in data.get('entry', []):
+            for change in entry.get('changes', []):
+                if change.get('value', {}).get('messages'):
+                    for message in change['value']['messages']:
+                        # Deduplicate
+                        msg_id = message.get('id')
+                        if msg_id and is_duplicate(msg_id):
+                            continue
+                        
+                        logger.info(f"Processing message {msg_id} from {message.get('from')}")
+                        orch.handle_message(message, change['value'])
+                        
+    except Exception as e:
+        logger.error(f"❌ Background processing error: {e}")
 
 
 @app.route('/webhook', methods=['POST'])
 def handle_webhook():
     """
-    Handle incoming WhatsApp messages
-    
-    Processes webhook events from Meta/WhatsApp and routes them
-    to the appropriate command handler.
-    
-    Returns:
-        200: Webhook processed successfully
-        500: Server error during processing
+    Handle incoming WhatsApp messages.
+    Returns 200 immediately and processes in background.
     """
     try:
         data = request.get_json()
-        logger.info(f"📨 Received webhook: {data}")
+        logger.info(f"📨 Received webhook")
         
-        # Extract message data
+        # Quick validation
         if not data.get('entry'):
             return jsonify({'status': 'ok'}), 200
         
-        # Get command handler
-        handler = get_command_handler()
-        
-        # Process each entry and message
-        for entry in data['entry']:
+        # Check for status updates (not messages) - ignore these
+        for entry in data.get('entry', []):
             for change in entry.get('changes', []):
-                if change.get('value', {}).get('messages'):
-                    for message in change['value']['messages']:
-                        handler.handle_message(message, change['value'])
+                if change.get('value', {}).get('statuses'):
+                    logger.debug("Ignoring status update")
+                    return jsonify({'status': 'ok'}), 200
+        
+        # Process in background thread - return 200 immediately
+        thread = threading.Thread(target=process_webhook_async, args=(data,))
+        thread.start()
         
         return jsonify({'status': 'ok'}), 200
         
     except Exception as e:
         logger.error(f"❌ Webhook error: {e}")
-        return jsonify({'status': 'error', 'message': str(e)}), 500
+        return jsonify({'status': 'ok'}), 200  # Still return 200 to prevent retries
 
 
 @app.route('/health', methods=['GET'])
 def health_check():
-    """
-    Health check endpoint for monitoring
-    
-    Returns:
-        200: Service is healthy
-    """
+    """Health check endpoint"""
     return jsonify({
         'status': 'healthy',
         'service': 'whatsapp-webhook'
@@ -104,30 +126,4 @@ def health_check():
 if __name__ == '__main__':
     import os
     port = int(os.environ.get('PORT', 8080))
-    
-    print("=" * 70)
-    print("🚀 WhatsApp Webhook Server")
-    print("=" * 70)
-    print()
-    print(f"Starting server on port {port}...")
-    print()
-    
-    if os.environ.get('ENVIRONMENT') == 'production':
-        print("Running in PRODUCTION mode 🏭")
-    else:
-        print("Running in DEVELOPMENT mode 🛠️")
-        print()
-        print("To test locally with ngrok:")
-        print("  1. Run: ngrok http 8080")
-        print("  2. Copy the HTTPS URL")
-        print("  3. Add to Meta: Settings → WhatsApp → Configuration")
-        print("     Webhook URL: https://your-ngrok-url.ngrok.io/webhook")
-        print(f"     Verify Token: {settings.webhook_verify_token}")
-    print()
-    print("=" * 70)
-    
-    app.run(
-        host='0.0.0.0',
-        port=port,
-        debug=(os.environ.get('ENVIRONMENT') != 'production')
-    )
+    app.run(host='0.0.0.0', port=port, debug=False)

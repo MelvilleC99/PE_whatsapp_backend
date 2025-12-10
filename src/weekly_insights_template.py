@@ -44,6 +44,8 @@ def send_weekly_insights_template(
         "Content-Type": "application/json"
     }
     
+    # Note: Variables in the template body are numbered {{1}}, {{2}}, etc.
+    # They map to parameters in order: name, leads, portal, offer, sale, revenue, commission
     payload = {
         "messaging_product": "whatsapp",
         "to": formatted_phone,
@@ -57,13 +59,13 @@ def send_weekly_insights_template(
                 {
                     "type": "body",
                     "parameters": [
-                        {"type": "text", "text": name},
+                        {"type": "text", "text": str(name)},
                         {"type": "text", "text": str(leads)},
-                        {"type": "text", "text": portal},
+                        {"type": "text", "text": str(portal)},
                         {"type": "text", "text": str(offer)},
                         {"type": "text", "text": str(sale)},
-                        {"type": "text", "text": revenue},
-                        {"type": "text", "text": commission}
+                        {"type": "text", "text": str(revenue)},
+                        {"type": "text", "text": str(commission)}
                     ]
                 }
             ]

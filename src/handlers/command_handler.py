@@ -80,7 +80,7 @@ class CommandHandler:
         """
         try:
             # Get saved insights
-            insights_doc = self.insights_service.get_user_insights(user['id'])
+            insights_doc = self.insights_service.get_insights(user['id'])
             
             if not insights_doc or not insights_doc.get('data'):
                 self.whatsapp.send_text_message(

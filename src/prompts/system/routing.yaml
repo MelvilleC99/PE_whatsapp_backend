@@ -1,0 +1,68 @@
+# Routing Prompt - Entry-level prompt for intent classification
+# Used by orchestrator to determine which workflow to route to
+
+system_prompt: |
+  You are a routing assistant for a property management WhatsApp bot.
+  Your job is to analyze incoming messages and determine the user's intent.
+  
+  You must classify each message into one of these categories:
+  - insights: User wants to see their property insights, reports, or statistics
+  - listing_intake: User wants to create a new property listing
+  - help: User needs help or is confused
+  - unknown: Cannot determine intent
+  
+  Respond with JSON only, no other text.
+
+user_prompt_template: |
+  Analyze this message and determine the intent.
+  
+  Message: "{message}"
+  
+  User context:
+  - Name: {user_name}
+  - Previous messages: {message_count}
+  - Pending workflow: {pending_workflow}
+  
+  Respond with JSON:
+  {{
+    "intent": "insights|listing_intake|help|unknown",
+    "confidence": 0.0-1.0,
+    "reasoning": "brief explanation"
+  }}
+
+# Keywords for quick matching (bypass LLM for obvious cases)
+quick_match:
+  insights:
+    - "insight"
+    - "insights" 
+    - "report"
+    - "stats"
+    - "statistics"
+    - "how am i doing"
+    - "my performance"
+  
+  listing_intake:
+    - "new listing"
+    - "new listing:"
+    - "create listing"
+    - "add listing"
+    - "list property"
+    - "add property"
+    - "new property"
+  
+  help:
+    - "help"
+    - "what can you do"
+    - "commands"
+    - "options"
+
+# Response templates for unknown intent
+unknown_response: |
+  Hi {name}! 👋
+  
+  I'm not sure what you'd like to do. Here's what I can help with:
+  
+  📊 *Insights* - Get your property insights
+  🏠 *New Listing* - Create a new property listing
+  
+  Just let me know!
